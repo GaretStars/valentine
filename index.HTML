@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Secret Valentine</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Poppins:wght@300;400;500&display=swap" rel="stylesheet">
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+
+body{
+    min-height:100svh;
+    background:linear-gradient(135deg,#ffd6e8,#ffc2e2,#ffb3d9);
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    font-family:'Poppins',sans-serif;
+    padding:20px;
+    overflow:hidden;
+    position:relative;
+    transition:1.2s ease;
+}
+
+body::before,
+body::after{
+    content:"";
+    position:absolute;
+    width:500px;
+    height:500px;
+    border-radius:50%;
+    background:radial-gradient(circle,rgba(255,105,180,0.4),transparent 70%);
+    filter:blur(80px);
+    z-index:0;
+    animation:floatGlow 8s ease-in-out infinite alternate;
+}
+
+body::before{ top:-150px; left:-150px; }
+body::after{ bottom:-150px; right:-150px; animation-delay:4s; }
+
+@keyframes floatGlow{
+    from{transform:translateY(0);}
+    to{transform:translateY(40px);}
+}
+
+body.opened{ transform:scale(1.05); }
+
+.overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.4);
+    backdrop-filter:blur(6px);
+    opacity:0;
+    pointer-events:none;
+    transition:1s ease;
+    z-index:5;
+}
+
+.overlay.show{
+    opacity:1;
+    pointer-events:auto;
+}
+
+.card{
+    width:100%;
+    max-width:420px;
+    padding:35px 25px;
+    border-radius:25px;
+    background:rgba(255,255,255,0.25);
+    backdrop-filter:blur(25px);
+    border:1px solid rgba(255,255,255,0.4);
+    text-align:center;
+    box-shadow:0 15px 40px rgba(255,105,180,0.2);
+    position:relative;
+    z-index:10;
+}
+
+.card h1{
+    font-family:'Playfair Display',serif;
+    font-size:24px;
+    color:#b03060;
+    margin-bottom:20px;
+}
+
+input{
+    width:100%;
+    padding:12px;
+    border-radius:20px;
+    border:none;
+    outline:none;
+    margin-bottom:15px;
+    text-align:center;
+}
+
+button{
+    padding:12px 25px;
+    border:none;
+    border-radius:50px;
+    background:linear-gradient(45deg,#ff9ecf,#ff69b4);
+    color:white;
+    cursor:pointer;
+    transition:0.3s;
+}
+
+button:active{ transform:scale(0.95); }
+
+.error{
+    color:#b00040;
+    font-size:13px;
+    margin-top:10px;
+}
+
+.envelope{
+    position:relative;
+    width:85vw;
+    max-width:320px;
+    aspect-ratio:3/2;
+    margin:30px auto 0;
+    display:none;
+    perspective:1200px;
+}
+
+.envelope-body{
+    width:100%;
+    height:100%;
+    background:#ff9ecf;
+    border-radius:18px;
+    position:relative;
+    box-shadow:0 25px 50px rgba(0,0,0,0.2);
+    overflow:hidden;
+}
+
+.flap{
+    position:absolute;
+    width:100%;
+    height:100%;
+    background:#ff69b4;
+    clip-path:polygon(0 0,100% 0,50% 65%);
+    transform-origin:top;
+    transition:1.2s cubic-bezier(.68,-0.55,.27,1.55);
+    z-index:3;
+}
+
+.envelope.open .flap{ transform:rotateX(180deg); }
+
+.letter{
+    position:fixed;
+    top:60%;
+    left:50%;
+    transform:translate(-50%, -50%) scale(0.7);
+    width:90%;
+    max-width:520px;
+    background:white;
+    border-radius:25px;
+    padding:45px 35px;
+    text-align:center;
+    line-height:1.9;
+    box-shadow:0 30px 80px rgba(0,0,0,0.3);
+    z-index:20;
+    opacity:0;
+    pointer-events:none;
+    transition:1s cubic-bezier(.68,-0.55,.27,1.55);
+}
+
+.letter.show{
+    opacity:1;
+    top:50%;
+    transform:translate(-50%, -50%) scale(1);
+    pointer-events:auto;
+}
+
+.letter img{
+    width:85%;
+    max-height:45vh;
+    object-fit:contain;
+    border-radius:18px;
+    margin:0 auto 25px;
+    display:block;
+}
+
+.fade-text{
+    opacity:0;
+    transform:translateY(15px);
+    transition:0.8s ease;
+}
+
+.fade-text.show{
+    opacity:1;
+    transform:translateY(0);
+}
+
+#hugBtn{ margin-top:20px; display:none; }
+
+.typing::after{
+    content:"|";
+    animation:blink 1s infinite;
+}
+@keyframes blink{
+    0%,50%,100%{opacity:1;}
+    25%,75%{opacity:0;}
+}
+
+.together-time{
+    margin-top:15px;
+    font-size:14px;
+    color:#b03060;
+    opacity:0;
+    transition:0.8s ease;
+}
+.together-time.show{ opacity:1; }
+
+.reply-box{ margin-top:20px; display:none; }
+.reply-message{
+    margin-top:10px;
+    font-size:14px;
+    color:#b03060;
+    opacity:0;
+    transition:0.5s;
+}
+.reply-message.show{ opacity:1; }
+
+.petal{
+    position:fixed;
+    top:-20px;
+    font-size:20px;
+    animation:fall linear forwards;
+    pointer-events:none;
+    z-index:2;
+}
+@keyframes fall{
+    to{
+        transform:translateY(110vh) rotate(360deg);
+        opacity:0;
+    }
+}
+
+.love{
+    position:fixed;
+    bottom:-20px;
+    font-size:22px;
+    pointer-events:none;
+    animation:floatUp 4s ease-out forwards;
+    z-index:999;
+}
+@keyframes floatUp{
+    0%{transform:translateY(0) scale(0.8);opacity:1;}
+    100%{transform:translateY(-120vh) scale(1.4);opacity:0;}
+}
+</style>
+</head>
+
+<body>
+
+<div class="overlay" id="overlay"></div>
+
+<div class="card">
+    <h1>Valentine Secret 💌</h1>
+    <input type="text" id="nameInput" placeholder="Masukkan nama kamu...">
+    <button onclick="checkName()">Buka Amplop</button>
+    <div class="error" id="error"></div>
+
+    <div class="envelope" id="envelope">
+        <div class="envelope-body">
+            <div class="flap"></div>
+        </div>
+    </div>
+</div>
+
+<div class="letter" id="letter">
+    <img src="foto.jpg" alt="Foto Kamu">
+    <h2 class="fade-text" id="title">Happy Valentine sayangggg</h2>
+    <p class="fade-text" id="message">
+        makasih ya sayanggg udah jadi bagian paling nyaman di hidup aku.
+        sejak ada kamu, semuanya terasa lebih ringan dan lebih berarti.
+        love u sayangggg 🤍
+    </p>
+
+    <button id="hugBtn">send hug 🤍</button>
+
+    <div class="together-time" id="togetherTime"></div>
+
+    <div class="reply-box" id="replyBox">
+        <input type="text" id="replyInput" placeholder="Balas pesan kamu di sini...">
+        <button onclick="sendReply()">Kirim 💌</button>
+        <div class="reply-message" id="replyMessage"></div>
+    </div>
+</div>
+
+<audio id="bgm" src="lagu.mp3" preload="auto"></audio>
+
+<script>
+const correctName="veronica";
+
+function typeWriter(element, text, speed=35){
+    element.innerHTML="";
+    element.classList.add("typing");
+    let i=0;
+    function typing(){
+        if(i<text.length){
+            element.innerHTML+=text.charAt(i);
+            i++;
+            setTimeout(typing,speed);
+        }else{
+            element.classList.remove("typing");
+        }
+    }
+    typing();
+}
+
+function startTogetherTime(){
+    const startDate=new Date("2025-10-21"); 
+    const now=new Date();
+    const diff=now-startDate;
+    const days=Math.floor(diff/(1000*60*60*24));
+    const el=document.getElementById("togetherTime");
+    el.innerHTML="Kita sudah bersama selama "+days+" hari 🤍";
+    el.classList.add("show");
+}
+
+function startPetals(){
+    for(let i=0;i<25;i++){
+        const petal=document.createElement("div");
+        petal.className="petal";
+        petal.innerHTML="🌸";
+        petal.style.left=Math.random()*100+"vw";
+        petal.style.animationDuration=(5+Math.random()*5)+"s";
+        document.body.appendChild(petal);
+        setTimeout(()=>{ petal.remove(); },10000);
+    }
+}
+
+function sendReply(){
+    const text=document.getElementById("replyInput").value.trim();
+    const replyMessage=document.getElementById("replyMessage");
+
+    if(text!==""){
+        replyMessage.innerHTML="makasi yaa sayangg, kamu bilang: \""+text+"\" 🥺🤍";
+        replyMessage.classList.add("show");
+
+        const nomorWA="6287788648463"; // GANTI NOMOR LO
+        const pesan=`haiii 
+dia bales dari website kamu:
+
+"${text}"`;
+
+        const encoded=encodeURIComponent(pesan);
+
+        setTimeout(()=>{
+            window.open(`https://wa.me/${nomorWA}?text=${encoded}`,"_blank");
+        },1000);
+    }
+}
+
+function checkName(){
+    const input=document.getElementById("nameInput").value.trim();
+    const envelope=document.getElementById("envelope");
+    const letter=document.getElementById("letter");
+    const overlay=document.getElementById("overlay");
+    const error=document.getElementById("error");
+    const music=document.getElementById("bgm");
+
+    if(input.toLowerCase()===correctName.toLowerCase()){
+        error.innerHTML="";
+        envelope.style.display="block";
+
+        setTimeout(()=>{ envelope.classList.add("open"); },200);
+
+        setTimeout(()=>{
+            document.body.classList.add("opened");
+            overlay.classList.add("show");
+            letter.classList.add("show");
+
+            music.volume=0;
+            music.play();
+            let fade=setInterval(()=>{
+                if(music.volume<0.3){ music.volume+=0.02; }
+                else clearInterval(fade);
+            },100);
+
+            const messageEl=document.getElementById("message");
+            const text=messageEl.innerText;
+            typeWriter(messageEl,text);
+
+            startTogetherTime();
+            startPetals();
+            document.getElementById("replyBox").style.display="block";
+
+        },1200);
+
+        setTimeout(()=>{ document.getElementById("title").classList.add("show"); },1600);
+        setTimeout(()=>{ document.getElementById("message").classList.add("show"); },2200);
+        setTimeout(()=>{ document.getElementById("hugBtn").style.display="inline-block"; },3000);
+
+    } else {
+        error.innerHTML="ini bukan nama kamu sayang 😠";
+    }
+}
+
+document.getElementById("hugBtn").onclick=function(){
+    for(let i=0;i<35;i++){
+        const love=document.createElement("div");
+        love.className="love";
+        love.innerHTML="💖";
+        love.style.left=Math.random()*100+"vw";
+        love.style.fontSize=(18+Math.random()*20)+"px";
+        love.style.animationDuration=(3+Math.random()*2)+"s";
+        document.body.appendChild(love);
+        setTimeout(()=>{ love.remove(); },4000);
+    }
+};
+</script>
+
+</body>
+</html>
